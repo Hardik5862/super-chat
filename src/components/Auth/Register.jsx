@@ -16,17 +16,57 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passConf, setPassConf] = useState("");
+  const [errors, setErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const isPasswordValid = () => {
+    if (password.length < 6 || passConf.length < 6) {
+      return false;
+    } else if (password !== passConf) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  const isFormValid = () => {
+    let errors = [];
+    let error;
+
+    if (!isPasswordValid()) {
+      error = { message: "Password is invalid" };
+      setErrors(errors.concat(error));
+      return false;
+    } else {
+      return true;
+    }
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then((createdUser) => {
-        console.log(createdUser);
-      })
-      .catch(console.log);
+    if (isFormValid()) {
+      setErrors([]);
+      setLoading(true);
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then((createdUser) => {
+          console.log(createdUser);
+          setLoading(false);
+          setUsername("");
+          setEmail("");
+          setPassword("");
+          setPassConf("");
+        })
+        .catch((err) => {
+          setLoading(false);
+          setErrors(errors.concat(err));
+        });
+    }
   };
+
+  const displayErrors = (errors) =>
+    errors.map((error, i) => <p key={i}>{error.message}</p>);
 
   return (
     <Grid textAlign="center" verticalAlign="middle" className="app">
@@ -45,6 +85,7 @@ const Register = () => {
               type="text"
               placeholder="Username"
               value={username}
+              required
               onChange={(e) => setUsername(e.target.value)}
             />
             <Form.Input
@@ -55,6 +96,7 @@ const Register = () => {
               type="email"
               placeholder="Email"
               value={email}
+              required
               onChange={(e) => setEmail(e.target.value)}
             />
             <Form.Input
@@ -65,6 +107,7 @@ const Register = () => {
               type="password"
               placeholder="Password"
               value={password}
+              required
               onChange={(e) => setPassword(e.target.value)}
             />
             <Form.Input
@@ -75,13 +118,20 @@ const Register = () => {
               type="password"
               placeholder="Password Confirmation"
               value={passConf}
+              required
               onChange={(e) => setPassConf(e.target.value)}
             />
-            <Button color="orange" fluid size="large">
+            <Button disabled={loading} color="orange" fluid size="large">
               Submit
             </Button>
           </Segment>
         </Form>
+        {errors.length ? (
+          <Message error>
+            <h3>Error</h3>
+            {displayErrors(errors)}
+          </Message>
+        ) : null}
         <Message>
           Already a user? <Link to="/login">Login</Link>
         </Message>
