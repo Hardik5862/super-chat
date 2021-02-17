@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import md5 from "md5";
 import firebase from "../../firebase";
 import {
   Grid,
@@ -18,6 +19,7 @@ const Register = () => {
   const [passConf, setPassConf] = useState("");
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [usersRef, setUsersRef] = useState(null);
 
   const isPasswordValid = () => {
     if (password.length < 6 || passConf.length < 6) {
@@ -42,6 +44,14 @@ const Register = () => {
     }
   };
 
+  const saveUser = (createdUser) => {
+    setUsersRef(firebase.database().ref("users"));
+    return usersRef.child(createdUser.user.uid).set({
+      name: createdUser.user.displayName,
+      avatar: createdUser.user.photoURL,
+    });
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (isFormValid()) {
@@ -52,11 +62,23 @@ const Register = () => {
         .createUserWithEmailAndPassword(email, password)
         .then((createdUser) => {
           console.log(createdUser);
-          setLoading(false);
-          setUsername("");
-          setEmail("");
-          setPassword("");
-          setPassConf("");
+          createdUser.user
+            .updateProfile({
+              displayName: username,
+              photoURL: `https://gravatar.com/avatar/${md5(
+                createdUser.user.email
+              )}?d=identicon`,
+            })
+            .then(() => {
+              saveUser(createdUser).then(() => {
+                console.log("user saved");
+                setLoading(false);
+              });
+            })
+            .catch((err) => {
+              setLoading(false);
+              setErrors(errors.concat(err));
+            });
         })
         .catch((err) => {
           setLoading(false);
