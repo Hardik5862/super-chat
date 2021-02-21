@@ -3,7 +3,7 @@ import { Switch, Route, useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 import firebase from "./firebase";
 
-import { setUser } from "./actions/index";
+import { setUser, clearUser } from "./actions/index";
 
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
@@ -17,6 +17,9 @@ const Root = (props) => {
       if (user) {
         props.setUser(user);
         history.push("/");
+      } else {
+        props.clearUser();
+        history.push("/login");
       }
     });
   }, [history, props]);
@@ -36,4 +39,4 @@ const mapStateToProps = (state) => ({
   isLoading: state.user.isLoading,
 });
 
-export default connect(mapStateToProps, { setUser })(Root);
+export default connect(mapStateToProps, { setUser, clearUser })(Root);
