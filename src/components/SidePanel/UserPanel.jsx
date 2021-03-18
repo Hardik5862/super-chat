@@ -56,7 +56,7 @@ class UserPanel extends React.Component {
     const { storageRef, userRef, blob, metadata } = this.state;
 
     storageRef
-      .child(`avatars/user-${userRef.uid}`)
+      .child(`avatars/user/${userRef.uid}`)
       .put(blob, metadata)
       .then((snap) => {
         snap.ref.getDownloadURL().then((downloadURL) => {
@@ -136,7 +136,6 @@ class UserPanel extends React.Component {
               <Header.Content>DevChat</Header.Content>
             </Header>
 
-            {/* User Dropdown  */}
             <Header style={{ padding: "0.25em" }} as="h4" inverted>
               <Dropdown
                 trigger={
@@ -150,7 +149,6 @@ class UserPanel extends React.Component {
             </Header>
           </Grid.Row>
 
-          {/* Change User Avatar Modal   */}
           <Modal basic open={modal} onClose={this.closeModal}>
             <Modal.Header>Change Avatar</Modal.Header>
             <Modal.Content>
